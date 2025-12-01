@@ -32,7 +32,6 @@ function sleep(ms) {
 
 async function fetchRandomBeatSaverMap() {
   try {
-    // Get the 50 most recent maps
     const latest = await api.getLatestMaps(0);
 
     if (!latest || !latest.docs || latest.docs.length === 0) {
@@ -42,8 +41,20 @@ async function fetchRandomBeatSaverMap() {
 
     const randomMap = latest.docs[Math.floor(Math.random() * latest.docs.length)];
 
+    // Ensure versions exist
+    if (!randomMap.versions || randomMap.versions.length === 0) {
+      console.log("Map has no versions:", randomMap);
+      return null;
+    }
+
+    const hash = randomMap.versions[0].hash;
+    if (!hash) {
+      console.log("Map version missing hash:", randomMap);
+      return null;
+    }
+
     return {
-      hash: randomMap.latestVersion.hash.toUpperCase(),
+      hash: hash.toUpperCase(),
       songName: randomMap.metadata.songName,
       difficulties: []
     };
@@ -53,6 +64,7 @@ async function fetchRandomBeatSaverMap() {
     return null;
   }
 }
+
 
 // ==============================
 //   PLAYLIST GENERATION
