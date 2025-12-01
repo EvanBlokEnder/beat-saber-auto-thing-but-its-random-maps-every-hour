@@ -48,7 +48,7 @@
   <div id="status"></div>
 
   <div id="download" style="display: none;">
-    <a href="/ranked.bplist" class="download">Download random.bplist</a>
+    <a href="/random.bplist" class="download">Download random.bplist</a>
   </div>
 
   <div id="oneClickDownload" style="display: none; margin-top: 20px;">
@@ -85,7 +85,7 @@
       generateBtn.textContent = "Generating...";
       downloadDiv.style.display = "none";
       oneClickDownloadDiv.style.display = "none"; // Hide One Click Download initially
-      statusDiv.textContent = "🛠️ Generating the full ScoreSaber ranked playlist...";
+      statusDiv.textContent = "🛠️ Generating the full ScoreSaber random playlist...";
 
       try {
         await fetch("/generate");
