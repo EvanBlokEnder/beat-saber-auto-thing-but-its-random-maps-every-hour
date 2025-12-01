@@ -6,36 +6,61 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const BP_LIST_PATH = path.join(__dirname, "ranked.bplist");
-const TMP_JSON_PATH = path.join(__dirname, "ranked.tmp.json");
+// Playlist paths
+const BP_LIST_PATH = path.join(__dirname, "random.bplist");
+const TMP_JSON_PATH = path.join(__dirname, "random.tmp.json");
 
+// Flags
 let isGenerating = false;
 
 app.use(express.static("public"));
 
+// Utility sleep
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 
-function generateBplist(songs) {
-  return JSON.stringify({
-    playlistTitle: "ScoreSaber Ranked",
-    playlistAuthor: "EvanBlokEnder",
-    customData: {
-      "image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAYAAAD0eNT6AAAACXBIWXMAAC4jAAAuIwF4pT92AAAJg0lEQVR4nO3dQWpTUQCG0TzJJoKB0CBuwInrcWFdjxN3IA2FSueOhefEgYgKJi+5z37nzB/8aULux82g0zzPGwCg5dXoAQDA7QkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAoO0lD0/TtNQOfnE87P2fZuBFeHh8clhcyTyff1S4AQCAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQtB094FqOh/08esMlPn86jp4AsIg37zb/9ffxw+PTNHrDNbgBAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgaHvJw8fDfl5qyNI+3n8ZPeEi09dvoycALOLzp7ejJ1zkzbvNas+6zWYznfugGwAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIK2owfATd09j17Amp12oxfAzbgBAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAEbUcP4IW6ex69AP7dWj+3p93oBbxAAoAeX6b8zloPf7gSPwEAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAICg7egBcHN3z6MX/NlpN3rBda35bw8xAoDrWOtB5gDib9b6uYUr8BMAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAELQdPQD4yd3z6AVAhACg5bQbveDPKof/mt8DCPETAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgaDt6APDDaTd6ARDiBgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgKBpnufzH56mBacs63jYn//CVuDj/ZfREwAW8f7D69ETLvLw+LTaw+6SM9wNAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQdM8z+c/PE0LTuFnx8P+/DcGYEUeHp8cFldyyRnuBgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABA0DTP8+gNAMCNuQEAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAEPQdRxFJ5MUsCjMAAAAASUVORK5CYIKP08ZLOQyjuWpp/ZW0/q04CWBpBADHWMt67zMZDp6desgtjBl33pO907+SnP5I0r2bTGtZX/vXnLz2yaTvTr3mVmMj2lgiAcCxNmy/lmH71aln3MI2B8MD6cOvp7fTcZycJKuMqy+nZ52WId5dw/0nADjmlvAlrX5943j9IQAOnw/PAxwl51YAUJAAAICCBAAAFCQAAKAgAQAABQkAAChIAABAQQIAAAoSAABQkAAAgIIEAAAUJAAAoCAB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",
-      "syncURL": "https://beat-saber-playlist-auto-thing-by.onrender.com/ranked.bplist"
-    },
-    songs
-  }, null, 2);
+// ==============================
+//    BEATSAVER RANDOM SYSTEM
+// ==============================
+
+// Fetch one random map from the "latest" feed
+async function fetchRandomBeatSaverMap() {
+  // Pick a random page from the first 10 pages of latest maps
+  const page = Math.floor(Math.random() * 10);
+
+  const url = `https://api.beatsaver.com/maps/latest/${page}`;
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    console.error("BeatSaver failed:", res.status);
+    return null;
+  }
+
+  const data = await res.json();
+  if (!data.docs || data.docs.length === 0) return null;
+
+  // Pick a random map from this page
+  const map = data.docs[Math.floor(Math.random() * data.docs.length)];
+
+  return {
+    hash: map.versions[0].hash.toUpperCase(),
+    songName: map.metadata.songName,
+    difficulties: []
+  };
 }
 
 
+// ==============================
+//   PLAYLIST GENERATION
+// ==============================
+
+// Load previously stored songs
 async function loadTempSongs() {
   if (fs.existsSync(TMP_JSON_PATH)) {
     try {
-      const data = JSON.parse(fs.readFileSync(TMP_JSON_PATH));
-      return Array.isArray(data) ? data : [];
+      return JSON.parse(fs.readFileSync(TMP_JSON_PATH));
     } catch {
       return [];
     }
@@ -43,100 +68,90 @@ async function loadTempSongs() {
   return [];
 }
 
-
-async function fetchAllRankedSongs(existing = []) {
-  const seen = new Set(existing.map(s => s.hash));
-  const songs = [...existing];
-  let page = Math.floor(songs.length / 20) + 1;
-
-  console.log("fucking scoresaber servers");
-
-  while (true) {
-    const res = await fetch(`https://scoresaber.com/api/leaderboards?ranked=true&page=${page}`);
-    if (!res.ok) {
-      console.error(`Page ${page} failed: ${res.status}`);
-      break;
-    }
-
-    const data = await res.json();
-    if (!data.leaderboards || data.leaderboards.length === 0) break;
-
-    let added = 0;
-    for (const lb of data.leaderboards) {
-      const hash = lb.songHash.toUpperCase();
-      if (!seen.has(hash)) {
-        songs.push({
-          hash,
-          songName: lb.songName,
-          difficulties: []
-        });
-        seen.add(hash);
-        added++;
-      }
-    }
-
-    console.log(`Page ${page}: Added ${added} new songs.`);
-    page++;
-
-    await sleep(500);  
-  }
-
-  return songs;
+// Generate valid bplist JSON
+function generateBplist(songs) {
+  return JSON.stringify({
+    playlistTitle: "Random BeatSaver Auto Playlist",
+    playlistAuthor: "EvanBlokEnder",
+    customData: {
+      image: ICON_BASE64, // No duplicates
+      syncURL: "https://beat-saber-playlist-auto-thing-by.onrender.com/random.bplist"
+    },
+    songs
+  }, null, 2);
 }
 
+// Playlist icon (ONLY STORED ONCE)
+const ICON_BASE64 =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAYAAAD0eNT6AAAA..." // trimmed if needed
 
+
+// Add a random map & regenerate playlist
 async function updateBplist() {
   if (isGenerating) return;
   isGenerating = true;
 
   try {
-    const existing = await loadTempSongs();
-    const allSongs = await fetchAllRankedSongs(existing);
+    const currentSongs = await loadTempSongs();
 
-   
-    fs.writeFileSync(TMP_JSON_PATH, JSON.stringify(allSongs, null, 2));
-    fs.writeFileSync(BP_LIST_PATH, generateBplist(allSongs));
+    const randomMap = await fetchRandomBeatSaverMap();
+    if (randomMap) {
+      console.log("Added map:", randomMap.songName, randomMap.hash);
+      currentSongs.push(randomMap);
+    } else {
+      console.log("Failed to fetch random map");
+    }
 
-    console.log(`✅ ranked.bplist updated with ${allSongs.length} songs.`);
+    // Write updated files
+    fs.writeFileSync(TMP_JSON_PATH, JSON.stringify(currentSongs, null, 2));
+    fs.writeFileSync(BP_LIST_PATH, generateBplist(currentSongs));
+
+    console.log(`✔ Playlist now contains ${currentSongs.length} maps.`);
   } catch (e) {
-    console.error("❌ Error generating playlist:", e);
+    console.error("❌ Error:", e);
   } finally {
     isGenerating = false;
   }
 }
 
 
+// ==============================
+//   EXPRESS ROUTES
+// ==============================
+
 app.get("/status", (req, res) => {
   res.json({ generating: isGenerating });
 });
 
-
 app.get("/generate", async (req, res) => {
   if (isGenerating) return res.status(202).send("Already generating...");
-  res.send("Generating playlist...");
+  res.send("Adding a new random map...");
   updateBplist();
 });
 
-
-app.get("/ranked.bplist", (req, res) => {
+app.get("/random.bplist", (req, res) => {
   if (isGenerating) {
-    return res.status(202).send("Playlist is still generating. Please wait.");
+    return res.status(202).send("Playlist is still generating...");
   }
 
   if (fs.existsSync(BP_LIST_PATH)) {
-    res.download(BP_LIST_PATH, "ranked.bplist");
+    res.download(BP_LIST_PATH, "random.bplist");
   } else {
     res.status(404).send("Playlist not found.");
   }
 });
 
 
+// ==============================
+//   START SERVER
+// ==============================
+
 app.listen(PORT, () => {
-  console.log(` Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 
-
+  // Run immediately on first deploy
   updateBplist();
 
-  
-  setInterval(updateBplist, 6 * 60 * 60 * 1000); 
+  // Run every hour
+  setInterval(updateBplist, 60 * 60 * 1000);
 });
